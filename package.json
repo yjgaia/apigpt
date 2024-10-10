@@ -1,0 +1,7 @@
+{
+  "scripts": {},
+  "dependencies": {
+    "@common-module/server": "^0.0.1"
+  },
+  "devDependencies": {}
+}
