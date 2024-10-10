@@ -31,6 +31,9 @@ const config: webpack.Configuration = {
   },
   resolve: {
     extensions: [".ts", ".js", ".less"],
+    extensionAlias: {
+      ".js": [".js", ".ts"],
+    },
   },
   output: {
     filename: "[name].js",

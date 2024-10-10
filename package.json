@@ -4,6 +4,7 @@
   },
   "type": "module",
   "dependencies": {
+    "@common-module/app": "^0.1.0",
     "@common-module/server": "^0.0.1"
   },
   "devDependencies": {
