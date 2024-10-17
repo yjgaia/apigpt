@@ -5,7 +5,8 @@
   "type": "module",
   "dependencies": {
     "@common-module/app": "^0.1.0",
-    "@common-module/server": "^0.0.1"
+    "@common-module/server": "^0.0.1",
+    "@common-module/social-components": "^0.1.0"
   },
   "devDependencies": {
     "@types/node": "^22.7.5",
