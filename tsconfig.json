@@ -77,5 +77,6 @@
     "scripts",
     "utils",
     "server",
+    "webpack.config.ts",
   ],
 }

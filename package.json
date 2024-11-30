@@ -4,9 +4,11 @@
   },
   "type": "module",
   "dependencies": {
-    "@common-module/app": "^0.1.0",
+    "@common-module/app": "^0.1.6",
     "@common-module/server": "^0.0.1",
-    "@common-module/social-components": "^0.1.0"
+    "@common-module/social-components": "^0.1.6",
+    "dotenv": "^16.4.5",
+    "openai": "^4.73.1"
   },
   "devDependencies": {
     "@types/node": "^22.7.5",
