@@ -1,6 +1,10 @@
-import { FileServer, HttpContext } from "@common-module/server";
-import Config from "./Config.js";
+import {
+  FileServer,
+  HttpContext,
+  WebSocketServer,
+} from "@common-module/server";
 import OpenAI from "openai";
+import Config from "./Config.js";
 
 class EditorServer extends FileServer {
   constructor(
@@ -27,18 +31,38 @@ class EditorServer extends FileServer {
 }
 
 export default async function run(config: Config) {
-  const client = new OpenAI({ apiKey: config.openAIApiKey });
+  const openAIClient = new OpenAI({ apiKey: config.openAIApiKey });
 
-  /*const stream = await client.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [{ role: "user", content: "Say this is a test" }],
-    stream: true,
-  });
-  for await (const chunk of stream) {
-    process.stdout.write(chunk.choices[0]?.delta?.content || "");
-  }*/
-
-  new EditorServer(config, async (ctx) => {
+  const server = new EditorServer(config, async (ctx) => {
     console.log(ctx.uri);
+  });
+
+  new WebSocketServer<{
+    join: (channel: string) => void;
+    chat: (message: string) => void;
+  }>(server, async (channelManager, request) => {
+    let joinedChannel: string | undefined;
+
+    channelManager.on("system", "join", (channel) => {
+      if (joinedChannel) channelManager.off(joinedChannel, "chat");
+      joinedChannel = channel;
+
+      channelManager.on(channel, "chat", async (message: string) => {
+        const stream = await openAIClient.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [{ role: "user", content: message }],
+          stream: true,
+        });
+        for await (const chunk of stream) {
+          channelManager.send(
+            channel,
+            "messageChunk",
+            chunk.choices[0]?.delta?.content || "",
+          );
+        }
+      });
+
+      channelManager.send("system", "joined", channel);
+    });
   });
 }
