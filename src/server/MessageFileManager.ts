@@ -1,6 +1,6 @@
 import { FileUtils } from "@common-module/server";
 
-interface Message {
+export interface Message {
   sender: string;
   content: string;
 }

@@ -5,6 +5,7 @@ import {
 } from "@common-module/server";
 import OpenAI from "openai";
 import Config from "./Config.js";
+import MessageFileManager, { Message } from "./server/MessageFileManager.js";
 
 class EditorServer extends FileServer {
   constructor(
@@ -38,12 +39,12 @@ export default async function server(config: Config) {
   });
 
   new WebSocketServer<{
-    join: (channel: string) => void;
+    join: (channel: string) => Promise<Message[]>;
     chat: (targetMessageId: string, message: string) => void;
   }>(server, (channelManager) => {
     let joinedChannel: string | undefined;
 
-    channelManager.on("system", "join", (channel) => {
+    channelManager.on("system", "join", async (channel) => {
       if (joinedChannel) channelManager.off(joinedChannel, "chat");
       joinedChannel = channel;
 
@@ -68,6 +69,8 @@ export default async function server(config: Config) {
       );
 
       channelManager.send("system", "joined", channel);
+
+      return await MessageFileManager.readChannelMessages(channel);
     });
   });
 }
