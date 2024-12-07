@@ -39,33 +39,33 @@ export default async function run(config: Config) {
 
   new WebSocketServer<{
     join: (channel: string) => void;
-    chat: (message: string) => void;
+    chat: (targetMessageId: string, message: string) => void;
   }>(server, (channelManager) => {
     let joinedChannel: string | undefined;
-    let requestIndex = 0;
 
     channelManager.on("system", "join", (channel) => {
       if (joinedChannel) channelManager.off(joinedChannel, "chat");
       joinedChannel = channel;
 
-      channelManager.on(channel, "chat", async (message: string) => {
-        const index = ++requestIndex;
-
-        const stream = await openAIClient.chat.completions.create({
-          model: "gpt-4o-mini",
-          messages: [{ role: "user", content: message }],
-          stream: true,
-        });
-
-        for await (const chunk of stream) {
-          channelManager.send(
-            channel,
-            "messageChunk",
-            chunk.choices[0]?.delta?.content || "",
-          );
-          if (index !== requestIndex) break;
-        }
-      });
+      channelManager.on(
+        channel,
+        "chat",
+        async (targetMessageId: string, message: string) => {
+          const stream = await openAIClient.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [{ role: "user", content: message }],
+            stream: true,
+          });
+          for await (const chunk of stream) {
+            channelManager.send(
+              channel,
+              "messageChunk",
+              targetMessageId,
+              chunk.choices[0]?.delta?.content || "",
+            );
+          }
+        },
+      );
 
       channelManager.send("system", "joined", channel);
     });
