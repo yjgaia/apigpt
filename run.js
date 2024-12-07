@@ -1,7 +1,7 @@
-import run from "./dist/run.js";
+import server from "./dist/server.js";
 import "dotenv/config";
 
-run({
+server({
   webServerPort: 8080,
   openAIApiKey: process.env.OPENAI_API_KEY,
 });

@@ -30,7 +30,7 @@ class EditorServer extends FileServer {
   }
 }
 
-export default async function run(config: Config) {
+export default async function server(config: Config) {
   const openAIClient = new OpenAI({ apiKey: config.openAIApiKey });
 
   const server = new EditorServer(config, async (ctx) => {
