@@ -1,5 +1,5 @@
 import { WebSocketClient } from "@common-module/app";
-import { ChannelManager } from "@common-module/ts";
+import { MessageChannelManager } from "@common-module/ts";
 import App from "./client/App.js";
 import Config from "./Config.js";
 
@@ -9,7 +9,7 @@ new App();
 
 const client = new WebSocketClient("http://localhost:8080/");
 client.on("connect", () => {
-  const channelManager = new ChannelManager<{
+  const channelManager = new MessageChannelManager<{
     joined: (channel: string) => void;
     messageChunk: (targetMessageId: string, chunk: string) => void;
   }>(client);
