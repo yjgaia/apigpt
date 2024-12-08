@@ -4,34 +4,51 @@ import {
   ChatMessageForm,
   ChatMessageList,
 } from "@common-module/social-components";
+import { v4 as uuidv4 } from "uuid";
 import MessageManager from "../data-managers/MessageManager.js";
 
 export default class ChatRoom extends DomNode {
   private messageList: ChatMessageList;
-  private messageForm: ChatMessageForm;
 
   constructor() {
     super(".chat-room");
     this.append(
       this.messageList = new ChatMessageList(),
-      this.messageForm = new ChatMessageForm((message) =>
-        this.sendMessage(message)
-      ),
+      new ChatMessageForm((message) => this.sendMessage(message)),
     );
   }
 
-  private async sendMessage(message: string) {
-    console.log("Sending message:", message);
+  private sendMessage(message: string) {
+    this.messageList.addMessage({
+      id: uuidv4(),
+      sender: "user",
+      content: message,
+      createdAt: new Date().toISOString(),
+    });
+
+    const newMessageId = uuidv4();
+
+    this.messageList.addMessage({
+      id: newMessageId,
+      sender: "assistant",
+      createdAt: new Date().toISOString(),
+    });
+
+    MessageManager.sendMessage(newMessageId, message);
   }
 
   public async joinChannel(channelId: string) {
     const messages = await MessageManager.joinChannel(channelId);
-    const chatMessages: ChatMessage[] = messages.map((message, index) => ({
-      id: index,
+    const chatMessages: ChatMessage[] = messages.map((message) => ({
+      id: uuidv4(),
       sender: message.sender,
       content: message.content,
       createdAt: message.createdAt,
     }));
     this.messageList.setMessages(chatMessages);
+  }
+
+  public addMessageChunk(targetMessageId: string, chunk: string) {
+    this.messageList.addChunk(targetMessageId, chunk);
   }
 }

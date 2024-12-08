@@ -59,25 +59,41 @@ export default async function server(config: Config) {
         channel,
         "chat",
         async (targetMessageId: string, message: string) => {
+          const time = new Date();
+
           const stream = await openAIClient.chat.completions.create({
             model: "gpt-4o-mini",
             messages: [{ role: "user", content: message }],
             stream: true,
           });
+
+          let fullMessage = "";
           for await (const chunk of stream) {
+            const content = chunk.choices[0]?.delta?.content || "";
             channelManager.send(
               channel,
               "messageChunk",
               targetMessageId,
-              chunk.choices[0]?.delta?.content || "",
+              content,
             );
+            fullMessage += content;
           }
+
+          await MessageFileManager.appendMessages(channel, [{
+            sender: "user",
+            content: message,
+            createdAt: time.toISOString(),
+          }, {
+            sender: "assistant",
+            content: fullMessage,
+            createdAt: time.toISOString(),
+          }]);
         },
       );
 
       channelManager.send("system", "joined", channel);
 
-      return await MessageFileManager.readChannelMessages(channel);
+      return await MessageFileManager.readMessages(channel);
     });
   });
 }

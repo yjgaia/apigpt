@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import ChannelList from "./components/ChannelList.js";
 import ChatRoom from "./components/ChatRoom.js";
 import ChannelManager from "./data-managers/ChannelManager.js";
+import MessageManager from "./data-managers/MessageManager.js";
 
 export default class App extends View {
   private channelList: ChannelList;
@@ -29,6 +30,10 @@ export default class App extends View {
     );
 
     this.loadChannels();
+
+    MessageManager.on("messageChunk", (targetMessageId, chunk) => {
+      this.chatRoom.addMessageChunk(targetMessageId, chunk);
+    });
   }
 
   private async loadChannels() {

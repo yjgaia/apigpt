@@ -11,7 +11,7 @@ class MessageFileManager {
     await FileUtils.deleteFile(`./messages/${channel}.json`);
   }
 
-  public async readChannelMessages(channel: string): Promise<Message[]> {
+  public async readMessages(channel: string): Promise<Message[]> {
     if (
       await FileUtils.checkFileExists(`./messages/${channel}.json`) !== true
     ) {
@@ -21,7 +21,9 @@ class MessageFileManager {
     return JSON.parse(content);
   }
 
-  public async writeChannelMessages(channel: string, messages: Message[]) {
+  public async appendMessages(channel: string, newMessages: Message[]) {
+    const messages = await this.readMessages(channel);
+    messages.push(...newMessages);
     await FileUtils.write(
       `./messages/${channel}.json`,
       JSON.stringify(messages),
