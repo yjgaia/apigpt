@@ -29,7 +29,7 @@ class MessageManager extends EventContainer<{
     this._channelManager = channelManager;
   }
 
-  private joinedChannel: string | undefined;
+  public currentChannel: string | undefined;
 
   constructor() {
     super();
@@ -46,10 +46,10 @@ class MessageManager extends EventContainer<{
   private initChannelManager() {
     this.channelManager = new MessageChannelManager(this.client);
     this.channelManager.on("system", "joined", (channel) => {
-      if (this.joinedChannel) {
-        this.channelManager.off(this.joinedChannel, "messageChunk");
+      if (this.currentChannel) {
+        this.channelManager.off(this.currentChannel, "messageChunk");
       }
-      this.joinedChannel = channel;
+      this.currentChannel = channel;
       this.channelManager.on(
         channel,
         "messageChunk",
@@ -64,10 +64,10 @@ class MessageManager extends EventContainer<{
   }
 
   public sendMessage(targetMessageId: string, message: string) {
-    if (!this.joinedChannel) throw new Error("Not in a channel");
+    if (!this.currentChannel) throw new Error("Not in a channel");
 
     this.channelManager.send(
-      this.joinedChannel,
+      this.currentChannel,
       "chat",
       targetMessageId,
       message,

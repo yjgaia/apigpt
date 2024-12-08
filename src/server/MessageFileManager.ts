@@ -4,7 +4,9 @@ import Message from "../data/Message.js";
 class MessageFileManager {
   public async readChannels(): Promise<string[]> {
     const files = await FileUtils.getAllFiles("./messages");
-    return files.map((file) => file.replace(".json", ""));
+    return files.map((file) =>
+      file.replace("messages/", "").replace(".json", "")
+    );
   }
 
   public async removeChannel(channel: string) {

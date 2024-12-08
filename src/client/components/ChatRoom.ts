@@ -5,6 +5,7 @@ import {
   ChatMessageList,
 } from "@common-module/social-components";
 import { v4 as uuidv4 } from "uuid";
+import ChannelNameManager from "../data-managers/ChannelNameManager.js";
 import MessageManager from "../data-managers/MessageManager.js";
 
 export default class ChatRoom extends DomNode {
@@ -35,10 +36,21 @@ export default class ChatRoom extends DomNode {
     });
 
     MessageManager.sendMessage(newMessageId, message);
+
+    if (
+      MessageManager.currentChannel &&
+      !ChannelNameManager.getChannelName(MessageManager.currentChannel)
+    ) {
+      ChannelNameManager.setChannelName(MessageManager.currentChannel, message);
+    }
   }
 
   public async joinChannel(channelId: string) {
     const messages = await MessageManager.joinChannel(channelId);
+
+    const channelName = messages[0]?.content;
+    if (channelName) ChannelNameManager.setChannelName(channelId, channelName);
+
     const chatMessages: ChatMessage[] = messages.map((message) => ({
       id: uuidv4(),
       sender: message.sender,
