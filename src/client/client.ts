@@ -1,4 +1,7 @@
 import { Router } from "@common-module/app";
 import App from "./App.js";
+import MessageManager from "./data-managers/MessageManager.js";
 
-Router.add(["/", "/:channel"], App);
+MessageManager.on("connected", () => {
+  Router.add(["/", "/:channel"], App);
+});

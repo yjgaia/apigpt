@@ -6,6 +6,7 @@ import Message from "../../data/Message.js";
 const config = (window as any).config as Config;
 
 class MessageManager extends EventContainer<{
+  connected: () => void;
   messageChunk: (targetMessageId: string, chunk: string) => void;
 }> {
   private client = new WebSocketClient(config.serverUrl);
@@ -19,7 +20,7 @@ class MessageManager extends EventContainer<{
 
   private get channelManager() {
     if (!this._channelManager) {
-      throw new Error("Channel manager not initialized");
+      throw new Error("Message channel manager not initialized");
     }
     return this._channelManager;
   }
@@ -28,20 +29,14 @@ class MessageManager extends EventContainer<{
     this._channelManager = channelManager;
   }
 
-  private _joinedChannel: string | undefined;
-
-  private get joinedChannel() {
-    if (!this._joinedChannel) throw new Error("Channel not joined");
-    return this._joinedChannel;
-  }
-
-  private set joinedChannel(channel) {
-    this._joinedChannel = channel;
-  }
+  private joinedChannel: string | undefined;
 
   constructor() {
     super();
-    this.client.on("connect", () => this.initChannelManager());
+    this.client.on("connect", () => {
+      this.initChannelManager();
+      this.emit("connected");
+    });
   }
 
   private initChannelManager() {
@@ -65,6 +60,8 @@ class MessageManager extends EventContainer<{
   }
 
   public sendMessage(targetMessageId: string, message: string) {
+    if (!this.joinedChannel) throw new Error("Not in a channel");
+
     this.channelManager.send(
       this.joinedChannel,
       "chat",
