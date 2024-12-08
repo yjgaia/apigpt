@@ -4,58 +4,88 @@ import Message from "../data/Message.js";
 import MessageFileManager from "./MessageFileManager.js";
 
 export default class ChatClient {
+  private currentChannel: string | undefined;
+
   constructor(
-    openAIClient: OpenAI,
-    channelManager: MessageChannelManager<{
+    private openAIClient: OpenAI,
+    private channelManager: MessageChannelManager<{
       join: (channel: string) => Promise<Message[]>;
       chat: (targetMessageId: string, message: string) => void;
     }>,
   ) {
-    let joinedChannel: string | undefined;
+    channelManager.on(
+      "system",
+      "join",
+      (channel) => this.handleChannelJoin(channel),
+    );
+  }
 
-    channelManager.on("system", "join", async (channel) => {
-      if (joinedChannel) channelManager.off(joinedChannel, "chat");
-      joinedChannel = channel;
+  private async handleChannelJoin(channel: string): Promise<Message[]> {
+    if (this.currentChannel) {
+      this.channelManager.off(this.currentChannel, "chat");
+    }
+    this.currentChannel = channel;
 
-      channelManager.on(
-        channel,
-        "chat",
-        async (targetMessageId: string, message: string) => {
-          const time = new Date();
+    this.channelManager.on(
+      channel,
+      "chat",
+      async (targetMessageId: string, message: string) =>
+        await this.handleChatMessage(channel, targetMessageId, message),
+    );
 
-          const stream = await openAIClient.chat.completions.create({
-            model: "gpt-4o-mini",
-            messages: [{ role: "user", content: message }],
-            stream: true,
-          });
+    this.channelManager.send("system", "joined", channel);
+    return await MessageFileManager.readMessages(channel);
+  }
 
-          let fullMessage = "";
-          for await (const chunk of stream) {
-            const content = chunk.choices[0]?.delta?.content || "";
-            channelManager.send(
-              channel,
-              "messageChunk",
-              targetMessageId,
-              content,
-            );
-            fullMessage += content;
-          }
+  private async handleChatMessage(
+    channel: string,
+    targetMessageId: string,
+    message: string,
+  ): Promise<void> {
+    const time = new Date();
 
-          await MessageFileManager.appendMessages(channel, [{
-            sender: "user",
-            content: message,
-            createdAt: time.toISOString(),
-          }, {
-            sender: "assistant",
-            content: fullMessage,
-            createdAt: time.toISOString(),
-          }]);
-        },
-      );
-
-      channelManager.send("system", "joined", channel);
-
-      return await MessageFileManager.readMessages(channel);
+    const stream = await this.openAIClient.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: message }],
+      stream: true,
     });
+
+    let assistantMessage = "";
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content || "";
+      this.channelManager.send(
+        channel,
+        "messageChunk",
+        targetMessageId,
+        content,
+      );
+      assistantMessage += content;
+    }
+
+    await this.saveMessages(
+      channel,
+      message,
+      assistantMessage,
+      time,
+      new Date(),
+    );
+  }
+
+  private async saveMessages(
+    channel: string,
+    userMessage: string,
+    assistantMessage: string,
+    userMessageTime: Date,
+    assistantMessageTime: Date,
+  ): Promise<void> {
+    await MessageFileManager.appendMessages(channel, [{
+      sender: "user",
+      content: userMessage,
+      createdAt: userMessageTime.toISOString(),
+    }, {
+      sender: "assistant",
+      content: assistantMessage,
+      createdAt: assistantMessageTime.toISOString(),
+    }]);
   }
 }
