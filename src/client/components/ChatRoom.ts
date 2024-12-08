@@ -14,8 +14,14 @@ export default class ChatRoom extends DomNode {
     super(".chat-room");
     this.append(
       this.messageList = new ChatMessageList(),
-      this.messageForm = new ChatMessageForm(),
+      this.messageForm = new ChatMessageForm((message) =>
+        this.sendMessage(message)
+      ),
     );
+  }
+
+  private async sendMessage(message: string) {
+    console.log("Sending message:", message);
   }
 
   public async joinChannel(channelId: string) {
