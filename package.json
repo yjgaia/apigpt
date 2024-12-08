@@ -8,9 +8,11 @@
     "@common-module/server": "^0.0.1",
     "@common-module/social-components": "^0.1.6",
     "dotenv": "^16.4.5",
-    "openai": "^4.73.1"
+    "openai": "^4.73.1",
+    "uuid": "^11.0.3"
   },
   "devDependencies": {
+    "@types/uuid": "^10.0.0",
     "@types/node": "^22.7.5",
     "@types/webpack": "^5.28.5",
     "css-loader": "^7.1.2",

@@ -1,12 +1,22 @@
 import { FileUtils } from "@common-module/server";
-
-export interface Message {
-  sender: string;
-  content: string;
-}
+import Message from "../data/Message.js";
 
 class MessageFileManager {
+  public async readChannels(): Promise<string[]> {
+    const files = await FileUtils.getAllFiles("./messages");
+    return files.map((file) => file.replace(".json", ""));
+  }
+
+  public async removeChannel(channel: string) {
+    await FileUtils.deleteFile(`./messages/${channel}.json`);
+  }
+
   public async readChannelMessages(channel: string): Promise<Message[]> {
+    if (
+      await FileUtils.checkFileExists(`./messages/${channel}.json`) !== true
+    ) {
+      return [];
+    }
     const content = await FileUtils.readText(`./messages/${channel}.json`);
     return JSON.parse(content);
   }

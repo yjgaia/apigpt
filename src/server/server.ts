@@ -4,8 +4,9 @@ import {
   WebSocketServer,
 } from "@common-module/server";
 import OpenAI from "openai";
-import Config from "./Config.js";
-import MessageFileManager, { Message } from "./server/MessageFileManager.js";
+import Config from "../Config.js";
+import Message from "../data/Message.js";
+import MessageFileManager from "./MessageFileManager.js";
 
 class EditorServer extends FileServer {
   constructor(
@@ -35,7 +36,13 @@ export default async function server(config: Config) {
   const openAIClient = new OpenAI({ apiKey: config.openAIApiKey });
 
   const server = new EditorServer(config, async (ctx) => {
-    console.log(ctx.uri);
+    if (ctx.uri === "/api/rooms") {
+      await ctx.apiResponse(await MessageFileManager.readChannels());
+    } else if (ctx.uri === "/api/room/remove") {
+      const data = await ctx.readData();
+      await MessageFileManager.removeChannel(data.channel);
+      await ctx.apiResponse("SUCCESS");
+    }
   });
 
   new WebSocketServer<{
