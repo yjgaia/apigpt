@@ -1,5 +1,5 @@
 export default interface Message {
-  sender: string;
+  sender: "user" | "assistant";
   content: string;
   createdAt: string;
 }

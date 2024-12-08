@@ -1,7 +1,7 @@
 import { MessageChannelManager } from "@common-module/ts";
 import OpenAI from "openai";
 import Message from "../data/Message.js";
-import MessageFileManager from "./MessageFileManager.js";
+import MessageManager from "./MessageManager.js";
 
 export default class ChatClient {
   private currentChannel: string | undefined;
@@ -34,7 +34,7 @@ export default class ChatClient {
     );
 
     this.channelManager.send("system", "joined", channel);
-    return await MessageFileManager.readMessages(channel);
+    return await MessageManager.readMessages(channel);
   }
 
   private async handleChatMessage(
@@ -46,7 +46,7 @@ export default class ChatClient {
 
     const stream = await this.openAIClient.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: [{ role: "user", content: message }],
+      messages: await MessageManager.readMessagesForAIClient(channel),
       stream: true,
     });
 
@@ -78,7 +78,7 @@ export default class ChatClient {
     userMessageTime: Date,
     assistantMessageTime: Date,
   ): Promise<void> {
-    await MessageFileManager.appendMessages(channel, [{
+    await MessageManager.appendMessages(channel, [{
       sender: "user",
       content: userMessage,
       createdAt: userMessageTime.toISOString(),
