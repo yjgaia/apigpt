@@ -21,12 +21,10 @@ class MessageFileManager {
     return JSON.parse(content);
   }
 
-  public async appendMessages(channel: string, newMessages: Message[]) {
-    const messages = await this.readMessages(channel);
-    messages.push(...newMessages);
+  public async writeMessages(channel: string, messages: Message[]) {
     await FileUtils.write(
       `./messages/${channel}.json`,
-      JSON.stringify(messages, null, 2),
+      JSON.stringify(messages),
     );
   }
 }

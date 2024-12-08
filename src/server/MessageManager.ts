@@ -31,7 +31,7 @@ class MessageManager {
       this.messages[channel] = await MessageFileManager.readMessages(channel);
     }
     this.messages[channel].push(...newMessages);
-    await MessageFileManager.appendMessages(channel, newMessages);
+    await MessageFileManager.writeMessages(channel, this.messages[channel]);
   }
 }
 
