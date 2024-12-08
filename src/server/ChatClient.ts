@@ -44,9 +44,17 @@ export default class ChatClient {
   ): Promise<void> {
     const time = new Date();
 
+    const messagesForAIClient = await MessageManager.readMessagesForAIClient(
+      channel,
+    );
+    messagesForAIClient.push({
+      role: "user",
+      content: message,
+    });
+
     const stream = await this.openAIClient.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: await MessageManager.readMessagesForAIClient(channel),
+      messages: messagesForAIClient,
       stream: true,
     });
 

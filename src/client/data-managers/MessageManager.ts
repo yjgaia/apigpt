@@ -39,6 +39,10 @@ class MessageManager extends EventContainer<{
     });
   }
 
+  public isConnected() {
+    return this.client.isConnected();
+  }
+
   private initChannelManager() {
     this.channelManager = new MessageChannelManager(this.client);
     this.channelManager.on("system", "joined", (channel) => {

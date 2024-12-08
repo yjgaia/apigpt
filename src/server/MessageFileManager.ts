@@ -24,7 +24,7 @@ class MessageFileManager {
   public async writeMessages(channel: string, messages: Message[]) {
     await FileUtils.write(
       `./messages/${channel}.json`,
-      JSON.stringify(messages),
+      JSON.stringify(messages, null, 2),
     );
   }
 }

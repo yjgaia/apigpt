@@ -7,6 +7,8 @@ import ChannelManager from "./data-managers/ChannelManager.js";
 import MessageManager from "./data-managers/MessageManager.js";
 
 export default class App extends View {
+  private currentChannel: string | undefined;
+
   private channelList: ChannelList;
   private chatRoom: ChatRoom;
 
@@ -29,25 +31,34 @@ export default class App extends View {
       ),
     );
 
-    this.loadChannels();
-
+    if (MessageManager.isConnected()) this.init();
+    MessageManager.on("connected", () => this.init());
     MessageManager.on("messageChunk", (targetMessageId, chunk) => {
       this.chatRoom.addMessageChunk(targetMessageId, chunk);
     });
-  }
-
-  private async loadChannels() {
-    const channels = await ChannelManager.getAllChannels();
-    for (const channel of channels) {
-      this.channelList.addChannel(channel.id);
-    }
   }
 
   public changeData(data: { channel?: string }): void {
     if (!data.channel) {
       Router.go(`/${uuidv4()}`);
     } else {
-      this.chatRoom.joinChannel(data.channel);
+      this.currentChannel = data.channel;
+      if (MessageManager.isConnected()) this.joinChannel(data.channel);
     }
+  }
+
+  private init() {
+    this.loadChannels();
+    if (this.currentChannel) this.joinChannel(this.currentChannel);
+  }
+
+  private async loadChannels() {
+    const channels = await ChannelManager.getAllChannels();
+    this.channelList.setChannels(channels);
+  }
+
+  private joinChannel(channel: string) {
+    this.chatRoom.joinChannel(channel);
+    this.channelList.addChannel(channel);
   }
 }

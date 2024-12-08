@@ -2,7 +2,6 @@ import { Router } from "@common-module/app";
 import { SocialCompConfig } from "@common-module/social-components";
 import { GaiaUIPreset } from "@gaiaprotocol/ui-preset";
 import App from "./App.js";
-import MessageManager from "./data-managers/MessageManager.js";
 
 GaiaUIPreset.init();
 
@@ -28,6 +27,4 @@ SocialCompConfig.fetchUser = (userId: string) => {
   }
 };
 
-MessageManager.on("connected", () => {
-  Router.add(["/", "/:channel"], App);
-});
+Router.add(["/", "/:channel"], App);

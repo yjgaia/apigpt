@@ -5,6 +5,12 @@ export default class ChannelList extends DomNode {
     super(".channel-list");
   }
 
-  public addChannel(channelId: string): void {
+  public addChannel(channel: string): void {
+  }
+
+  public setChannels(channels: string[]): void {
+    for (const channel of channels) {
+      this.addChannel(channel);
+    }
   }
 }
