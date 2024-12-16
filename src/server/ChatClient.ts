@@ -53,7 +53,7 @@ export default class ChatClient {
     });
 
     const stream = await this.openAIClient.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "o1-preview",
       messages: messagesForAIClient,
       stream: true,
     });
